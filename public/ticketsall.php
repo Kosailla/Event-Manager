@@ -1,6 +1,6 @@
 <?php
-require_once 'includes/auth.php';
-require_once 'includes/db.php';
+require_once '../includes/auth.php';
+require_once '../includes/db.php';
 
 $sql = "SELECT Ticket.*, Event.titre AS event_titre, Venue.nom AS lieu_nom
         FROM Ticket

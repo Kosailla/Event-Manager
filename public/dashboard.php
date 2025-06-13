@@ -4,8 +4,8 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 // Authentification + connexion DB
-require_once 'includes/auth.php';
-require_once 'includes/db.php';
+require_once '../includes/auth.php';
+require_once '../includes/db.php';
 
 // Récupération des événements avec lieu et artiste
 $sql = "SELECT Event.id, Event.titre, Event.date_heure, Event.prix, Venue.nom AS lieu, Artiste.nom AS artiste

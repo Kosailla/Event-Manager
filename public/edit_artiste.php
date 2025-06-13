@@ -1,11 +1,25 @@
 <?php
-require_once 'includes/auth.php';
-require_once 'includes/db.php';
+require_once '../includes/auth.php';
+require_once '../includes/db.php';
+
+$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+
+// Récupérer l’artiste à modifier
+$stmt = $pdo->prepare("SELECT * FROM Artiste WHERE id = ?");
+$stmt->execute([$id]);
+$artiste = $stmt->fetch();
+
+if (!$artiste) {
+    echo "Artiste introuvable.";
+    exit;
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nom = $_POST['nom'];
     $url = $_POST['url'];
-    $photo = null;
+
+    // Gestion de la photo
+    $photo = $artiste['photo'];
 
     if (!empty($_FILES['photo']['name'])) {
         $targetDir = "uploads/";
@@ -20,8 +34,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    $stmt = $pdo->prepare("INSERT INTO Artiste (nom, url, photo) VALUES (?, ?, ?)");
-    $stmt->execute([$nom, $url, $photo]);
+    // Mise à jour dans la BDD
+    $stmt = $pdo->prepare("UPDATE Artiste SET nom = ?, url = ?, photo = ? WHERE id = ?");
+    $stmt->execute([$nom, $url, $photo, $id]);
 
     header("Location: artistes.php");
     exit;
@@ -32,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Ajouter un artiste</title>
+    <title>Modifier un artiste</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <style>
         form {
@@ -67,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .btn-save {
-            background: #28a745;
+            background: #007bff;
             color: white;
             border: none;
             padding: 10px 16px;
@@ -87,7 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         h1::before {
-            content: "🎙️ ";
+            content: "🖊️ ";
         }
     </style>
 </head>
@@ -109,21 +124,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </nav>
 
 <main>
-    <h1>Ajouter un artiste</h1>
+    <h1>Modifier un artiste</h1>
 
     <form method="post" enctype="multipart/form-data">
         <label for="nom">Nom de l’artiste</label>
-        <input type="text" name="nom" id="nom" required>
+        <input type="text" name="nom" id="nom" value="<?= htmlspecialchars($artiste['nom']) ?>" required>
 
         <label for="url">URL (site, profil, page...)</label>
-        <input type="url" name="url" id="url">
+        <input type="url" name="url" id="url" value="<?= htmlspecialchars($artiste['url']) ?>">
 
-        <label for="photo">Photo (optionnel)</label>
+        <label for="photo">Changer la photo (optionnel)</label>
         <input type="file" name="photo" id="photo">
+        <small>Laisse vide pour conserver la photo actuelle.</small>
+
+        <br><br>
+        <strong>Photo actuelle :</strong><br>
+        <?= htmlspecialchars($artiste['photo']) ?>
 
         <div class="form-actions">
             <a href="artistes.php" class="btn-back">← Retour</a>
-            <button type="submit" class="btn-save">✅ Ajouter l’artiste</button>
+            <button type="submit" class="btn-save">💾 Enregistrer les modifications</button>
         </div>
     </form>
 </main>

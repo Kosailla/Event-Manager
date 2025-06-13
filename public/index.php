@@ -1,5 +1,5 @@
 <?php
-require_once 'includes/db.php';
+require_once '../includes/db.php';
 
 $sql = "SELECT Event.*, Venue.nom AS lieu_nom
         FROM Event

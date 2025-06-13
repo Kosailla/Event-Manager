@@ -1,23 +1,8 @@
 <?php
-require_once 'includes/auth.php';
-require_once 'includes/db.php';
+require_once '../includes/auth.php';
+require_once '../includes/db.php';
 
-$id = $_GET['id'] ?? null;
-
-if (!$id) {
-    header('Location: dashboard.php');
-    exit;
-}
-
-$stmt = $pdo->prepare("SELECT * FROM Event WHERE id = ?");
-$stmt->execute([$id]);
-$event = $stmt->fetch();
-
-if (!$event) {
-    echo "Événement introuvable.";
-    exit;
-}
-
+// Récupérer les lieux et artistes
 $venues = $pdo->query("SELECT id, nom FROM Venue ORDER BY nom")->fetchAll();
 $artistes = $pdo->query("SELECT id, nom FROM Artiste ORDER BY nom")->fetchAll();
 
@@ -26,10 +11,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $description = $_POST['description'];
     $date_heure = $_POST['date_heure'];
     $prix = $_POST['prix'];
-    $venue_id = $_POST['venue_id'];
-    $artiste_id = $_POST['artiste_id'];
-    $photo = $event['photo'];
+    $id_1 = $_POST['venue_id'];
+    $id_2 = $_POST['artiste_id'];
+    $photo = null;
 
+    // Gérer l’upload d’image
     if (!empty($_FILES['photo']['name'])) {
         $targetDir = "uploads/";
         if (!is_dir($targetDir)) {
@@ -43,10 +29,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    $stmt = $pdo->prepare("UPDATE Event 
-        SET titre = ?, description = ?, date_heure = ?, prix = ?, id_1 = ?, id_2 = ?, photo = ?
-        WHERE id = ?");
-    $stmt->execute([$titre, $description, $date_heure, $prix, $venue_id, $artiste_id, $photo, $id]);
+    $stmt = $pdo->prepare("INSERT INTO Event (titre, description, date_heure, prix, id_1, id_2, photo) 
+                           VALUES (?, ?, ?, ?, ?, ?, ?)");
+    $stmt->execute([$titre, $description, $date_heure, $prix, $id_1, $id_2, $photo]);
 
     header("Location: dashboard.php");
     exit;
@@ -57,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Modifier l’événement</title>
+    <title>Ajouter un événement</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <style>
         form {
@@ -99,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .btn-save {
-            background: #007bff;
+            background: #28a745;
             color: white;
             border: none;
             padding: 10px 16px;
@@ -119,12 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         h1::before {
-            content: "📝 ";
-        }
-
-        .photo-preview {
-            margin-top: 10px;
-            max-height: 150px;
+            content: "🗓️ ";
         }
     </style>
 </head>
@@ -146,29 +126,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </nav>
 
 <main>
-    <h1>Modifier l’événement</h1>
+    <h1>Ajouter un événement</h1>
 
     <form method="post" enctype="multipart/form-data">
         <label for="titre">Titre de l’événement</label>
-        <input type="text" name="titre" id="titre" value="<?= htmlspecialchars($event['titre']) ?>" required>
+        <input type="text" name="titre" id="titre" required>
 
         <label for="description">Description</label>
-        <textarea name="description" id="description" rows="4"><?= htmlspecialchars($event['description']) ?></textarea>
+        <textarea name="description" id="description" rows="4"></textarea>
 
         <label for="date_heure">Date et heure</label>
-        <input type="datetime-local" name="date_heure" id="date_heure"
-               value="<?= date('Y-m-d\TH:i', strtotime($event['date_heure'])) ?>" required>
+        <input type="datetime-local" name="date_heure" id="date_heure" required>
 
         <label for="prix">Prix (€)</label>
-        <input type="number" name="prix" id="prix" step="0.01" value="<?= htmlspecialchars($event['prix']) ?>" required>
+        <input type="number" name="prix" id="prix" step="0.01" required>
 
         <label for="venue_id">Lieu (venue)</label>
         <select name="venue_id" id="venue_id" required>
             <option value="">-- Choisir un lieu --</option>
             <?php foreach ($venues as $venue): ?>
-                <option value="<?= $venue['id'] ?>" <?= $venue['id'] == $event['id_1'] ? 'selected' : '' ?>>
-                    <?= htmlspecialchars($venue['nom']) ?>
-                </option>
+                <option value="<?= $venue['id'] ?>"><?= htmlspecialchars($venue['nom']) ?></option>
             <?php endforeach; ?>
         </select>
 
@@ -176,23 +153,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <select name="artiste_id" id="artiste_id" required>
             <option value="">-- Choisir un artiste --</option>
             <?php foreach ($artistes as $artiste): ?>
-                <option value="<?= $artiste['id'] ?>" <?= $artiste['id'] == $event['id_2'] ? 'selected' : '' ?>>
-                    <?= htmlspecialchars($artiste['nom']) ?>
-                </option>
+                <option value="<?= $artiste['id'] ?>"><?= htmlspecialchars($artiste['nom']) ?></option>
             <?php endforeach; ?>
         </select>
 
-        <label for="photo">Changer l’image (optionnel)</label>
+        <label for="photo">Image de l’événement (optionnelle)</label>
         <input type="file" name="photo" id="photo">
-
-        <?php if (!empty($event['photo'])): ?>
-            <p>Photo actuelle :</p>
-            <img src="uploads/<?= htmlspecialchars($event['photo']) ?>" alt="Photo actuelle" class="photo-preview">
-        <?php endif; ?>
 
         <div class="form-actions">
             <a href="dashboard.php" class="btn-back">← Retour</a>
-            <button type="submit" class="btn-save">💾 Enregistrer les modifications</button>
+            <button type="submit" class="btn-save">✅ Ajouter l’événement</button>
         </div>
     </form>
 </main>

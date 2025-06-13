@@ -1,6 +1,6 @@
 <?php
-require_once 'includes/auth.php';
-require_once 'includes/db.php';
+require_once '../includes/auth.php';
+require_once '../includes/db.php';
 
 // Récupérer l'ID de l'événement
 $event_id = isset($_GET['event_id']) ? (int)$_GET['event_id'] : 0;

@@ -1,6 +1,6 @@
 <?php
-require_once 'includes/auth.php';
-require_once 'includes/db.php';
+require_once '../includes/auth.php';
+require_once '../includes/db.php';
 
 $sql = "SELECT * FROM Artiste ORDER BY id ASC";
 $stmt = $pdo->query($sql);

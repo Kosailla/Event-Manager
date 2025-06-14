@@ -7,7 +7,7 @@ ini_set('display_errors', 1);
 require_once '../includes/auth.php';
 require_once '../includes/db.php';
 
-// Récupération des événements avec lieu et artiste
+// Récupération des événements avec lieu et artist
 $sql = "SELECT Event.id, Event.titre, Event.date_heure, Event.prix, Venue.nom AS lieu, Artiste.nom AS artiste
         FROM Event
         JOIN Venue ON Event.id_1 = Venue.id
